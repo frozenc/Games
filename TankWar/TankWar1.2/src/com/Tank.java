@@ -1,0 +1,169 @@
+package com;
+
+import java.awt.*;
+import java.awt.event.KeyEvent;
+
+/**
+ * @author Chan
+ * @version 1.0
+ * @date 2019/10/21 17:17
+ */
+public class Tank {
+    public static final int XSPEED = 5;
+    public static final int YSPEED = 5;
+    public static final int TANK_WIDTH = 50;
+    public static final int TANK_HEIGHT = 50;
+
+    private int x, y;
+
+    private TankClient tc = null;
+
+    private boolean bL = false, bU = false, bR = false, bD = false;
+
+    public enum Direction {L, LU, U, RU, R, RD, D, LD, STOP;}
+    private Direction dir = Direction.STOP;
+    private Direction barrelDir = Direction.D;
+
+    public Tank(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public Tank(int x, int y, TankClient tc) {
+        this(x, y);
+        this.tc = tc;
+    }
+
+    public void move() {
+        switch (dir) {
+            case L:
+                x -= XSPEED;
+                break;
+            case LU:
+                x -= XSPEED;
+                y -= YSPEED;
+                break;
+            case U:
+                y -= YSPEED;
+                break;
+            case RU:
+                x += XSPEED;
+                y -= YSPEED;
+                break;
+            case R:
+                x += XSPEED;
+                break;
+            case RD:
+                x += XSPEED;
+                y += YSPEED;
+                break;
+            case D:
+                y += YSPEED;
+                break;
+            case LD:
+                x -= XSPEED;
+                y += YSPEED;
+                break;
+            case STOP:
+        }
+
+        if(this.dir != Direction.STOP) {
+            this.barrelDir = this.dir;
+        }
+    }
+
+    public void draw(Graphics g) {
+        Color c = g.getColor();
+        g.setColor(Color.RED);
+        g.fillOval(x,y,TANK_WIDTH,TANK_HEIGHT);
+        g.setColor(c);
+        move();
+
+        switch (barrelDir) {
+            case L:
+                g.drawLine(x + TANK_WIDTH/2, y + TANK_HEIGHT/2, x, y + TANK_HEIGHT/2);
+                break;
+            case LU:
+                g.drawLine(x + TANK_WIDTH/2, y + TANK_HEIGHT/2, x, y);
+                break;
+            case U:
+                g.drawLine(x + TANK_WIDTH/2, y + TANK_HEIGHT/2, x + TANK_WIDTH/2, y);
+                break;
+            case RU:
+                g.drawLine(x + TANK_WIDTH/2, y + TANK_HEIGHT/2, x + TANK_WIDTH, y);
+                break;
+            case R:
+                g.drawLine(x + TANK_WIDTH/2, y + TANK_HEIGHT/2, x + TANK_WIDTH, y + TANK_HEIGHT/2);
+                break;
+            case RD:
+                g.drawLine(x + TANK_WIDTH/2, y + TANK_HEIGHT/2, x + TANK_WIDTH, y + TANK_HEIGHT);
+                break;
+            case D:
+                g.drawLine(x + TANK_WIDTH/2, y + TANK_HEIGHT/2, x + TANK_WIDTH/2, y + TANK_HEIGHT);
+                break;
+            case LD:
+                g.drawLine(x + TANK_WIDTH/2, y + TANK_HEIGHT/2, x, y + TANK_HEIGHT);
+                break;
+        }
+    }
+
+    public void keyPressed(KeyEvent e) {
+        int key = e.getKeyCode();
+        switch (key) {
+            case KeyEvent.VK_CONTROL:
+                tc.m = fire();
+                break;
+            case KeyEvent.VK_LEFT:
+                bL = true;
+                break;
+            case KeyEvent.VK_RIGHT:
+                bR = true;
+                break;
+            case KeyEvent.VK_UP:
+                bU = true;
+                break;
+            case KeyEvent.VK_DOWN:
+                bD = true;
+                break;
+        }
+        locateDirection();
+    }
+
+    public void keyReleased(KeyEvent e) {
+        int key = e.getKeyCode();
+        switch (key) {
+            case KeyEvent.VK_LEFT:
+                bL = false;
+                break;
+            case KeyEvent.VK_RIGHT:
+                bR = false;
+                break;
+            case KeyEvent.VK_UP:
+                bU = false;
+                break;
+            case KeyEvent.VK_DOWN:
+                bD = false;
+                break;
+        }
+        locateDirection();
+    }
+
+    public void locateDirection() {
+        if (bL && !bU && !bR && !bD) dir = Direction.L;
+        else if (bL && bU && !bR && !bD) dir = Direction.LU;
+        else if (!bL && bU && !bR && !bD) dir = Direction.U;
+        else if (!bL && bU && bR && !bD) dir = Direction.RU;
+        else if (!bL && !bU && bR && !bD) dir = Direction.R;
+        else if (!bL && !bU && bR && bD) dir = Direction.RD;
+        else if (!bL && !bU && !bR && bD) dir = Direction.D;
+        else if (bL && !bU && !bR && bD) dir = Direction.LD;
+        else if (!bL && !bU && !bR && !bD) dir = Direction.STOP;
+    }
+
+    public Missile fire() {
+        int x = this.x + TANK_WIDTH/2 - Missile.MISSILE_WIDTH/2;
+        int y = this.y + TANK_HEIGHT/2 - Missile.MISSILE_HEIGHT/2;
+        return new Missile(x, y, barrelDir);
+    }
+
+}
